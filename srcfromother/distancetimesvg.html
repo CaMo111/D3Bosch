@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Time-Distance Panel</title>
+    <script type="text/javascript" src="https://d3js.org/d3.v3.min.js"></script>
+</head>
+<body>
+    <script type="text/javascript">
+        // Ensure D3.js is loaded correctly
+        if (typeof d3 === 'undefined') {
+          throw new Error('D3.js is not loaded. Please ensure you have included the D3.js library.');
+        }
+
+        // *******************
+        // prepareTime-distance panels:
+        // *******************
+        var distScale, parseDate, timeScale;
+        var SVGscaleWidth = 650, SVGscaleHeight = 170;
+        var xMargin = 10, yT = 125, yD = 70;
+        var scaleLength = 600;
+        var rectHeight = 6; //for rects in scales
+
+        // Parses string to Date object
+        function parseMyDate(DateStr) {
+          return dateFormat.parse(DateStr);
+        }
+
+        d3.json("boschdataset_onlyparticipant1.geojson", function(error, geoData) {
+          if (error) throw error;
+
+          // Find the earliest and latest times of day
+          var earliestTime = d3.min(geoData.features, function(d) {
+            var timeStr = d.properties.Timestamp; // Extract the time part
+            return timeStr;
+          });
+
+          var latestTime = d3.max(geoData.features, function(d) {
+            var timeStr = d.properties.Timestamp; // Extract the time part
+            return timeStr; 
+          })
+
+          var smallestDist = d3.min(geoData.features, function(d) {
+            return d.geometry.distance; // Extract the distance part
+          });
+
+          var largestDist = d3.max(geoData.features, function(d) {
+            return d.geometry.distance; // Extract the distance part
+          });
+
+          // create sum of all distances var 
+          var sumDist = d3.sum(geoData.features, function(d) {
+            return d.geometry.distance;
+          });
+
+          console.log(earliestTime);
+          console.log(latestTime);
+          console.log(smallestDist);
+          largestDist = sumDist; // set largest distance to sum of all distances
+          var distUnLabelledTicksValue = 200; // number of ticks for the detailed axis without labels
+          var distSlicesLabelledTicksValue = 1;
+          var distSlicesUnLabelledTicksValue = 5;
+          var timeLabelledTicksUnit = d3.time.months;
+          var timeLabelledTicksValue = 1;
+          var timeUnLabelledTicksUnit = d3.time.days;
+          var timeUnLabelledTicksValue = 20;
+          var distLabelledTicksValue = 20;
+          // circle sizes used in Map:
+          var stopSize = 4;
+          var noStopSize = 1.5;
+          // nameLabel + Attr: title + attribute to use for instance "name" in pop-ups:
+          var nameLabel = "";
+          var nameAttr = "name";
+          // background image: set to "" to not have any
+          var background_image = "";
+
+          // Vars domain for the scales
+            timeScale = d3.time.scale()
+            .domain([earliestTime, latestTime])
+            .range([0, scaleLength]);
+
+            distScale = d3.scale.linear()
+            .domain([smallestDist, largestDist])
+            .range([0, scaleLength]);
+
+            // Create SVG element for Geo to Time panel:
+            var svgGeo2Time = d3.select("body")
+            .append("svg")
+            .attr("id", "geo2TimeSVG")
+            .attr("width", SVGscaleWidth)
+            .attr("height", SVGscaleHeight)
+            .append("g");
+
+            // Add title to the Geo to Time panel
+            svgGeo2Time.append("text")
+            .attr("x", 5)
+            .attr("y", 20)
+            .attr("class", "panelTitle")
+            .text("FROM GEOGRAPHY TO TIME");
+
+            // Create detailed axis without labels
+            var distAxis2 = d3.svg.axis()
+            .scale(distScale)
+            .orient("top")
+            .ticks(distUnLabelledTicksValue)
+            .tickSize(6, 0);
+
+            // Draw detailed axis without labels
+            svgGeo2Time.append("g")
+            .attr("class", "axisNoLabels")
+            .attr("transform", "translate(" + xMargin + "," + yD +")" )
+            .call(distAxis2);
+
+            // Create generalized axis with labels
+            var distAxis = d3.svg.axis()
+            .scale(distScale)
+            .orient("top")
+            .ticks(distLabelledTicksValue)
+            .tickSize(10, 0);
+
+            // Draw generalized axis with labels
+            svgGeo2Time.append("g")
+            .attr("class", "axis")
+            .attr("transform", "translate(" + xMargin + "," + yD +")" )
+            .call(distAxis);
+
+        });
+
+    </script>
+</body>
+</html>

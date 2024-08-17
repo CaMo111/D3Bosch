@@ -1,0 +1,31 @@
+"stress_xs": 10 this is not innacurate 
+
+event - button eg if they have a delay
+use basemap for geography layer 
+smaller amount of participants for data 
+layers connecting events
+width from top to bottom layer denotes larger time wait 
+
+map one variable across multiple participants, with a singular map to choose between the participants.
+once achieved having multiple variables
+
+
+
+
+"Delay / Connection missed / Hurry required," (will be referred to as ’Delay’)
+117 • "Disturbing people in the environment / crowded transportation," (will be referred to as ’Disturbing People’)
+118 • "Driving behavior of the driver," (will be referred to as ’Driving Behavior’)
+119 • "Infrastructure (e.g. no roofing/no or not enough information /not barrier-free / uneven road)," (will be referred to as
+120 ’Infrastructure’)
+121 • "Positive social situation/interaction," (will be referred to as ’Positive Social Interaction’)
+122 • "Media entertainment (music, podcast, book, etc.)," (will be referred to as ’Media Entertainment’)
+123 • "Destination or connection reached / means of transport on time," (will be referred to as ’Destination/connection reached’)
+124 • "Discomfort (boredom, impatience, difficult thoughts, hunger, fatigue, cold, wetness, etc.).," (will be referred to as
+125 ’Discomfort’)
+126 • "Transportation is comfortable (cozy/pleasant temperature / not too crowded / get a seat, etc.)," (will be referred to as
+127 ’Comfort’)
+128 • "Beautiful surroundings,"
+129 • and an option to "report a different category." (will be referred to as ’Others’)
+
+
+each participant is over like a week 
