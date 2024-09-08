@@ -4,12 +4,34 @@
     <meta charset="utf-8">
     <title>Geography SVG</title>
     <script type="text/javascript" src="https://d3js.org/d3.v3.min.js"></script>
+    <style>
+        .tooltip {
+            position: absolute;
+            text-align: left;
+            width: 200px;
+            height: auto;
+            padding: 10px;
+            font: 14px sans-serif;
+            background: lightsteelblue;
+            border: 1px solid #333;
+            border-radius: 8px;
+            pointer-events: none;
+            opacity: 0;
+            right: 10px;
+            top: 10px;
+        }
+        .highlight {
+            stroke: black;
+            stroke-width: 2;
+        }
+    </style>
 </head>
 <body>
+    <div id="tooltip" class="tooltip"></div>
     <script type="text/javascript">
         // Ensure D3.js is loaded correctly
         if (typeof d3 === 'undefined') {
-          throw new Error('D3.js is not loaded. Please ensure you have included the D3.js library.');
+            throw new Error('D3.js is not loaded. Please ensure you have included the D3.js library.');
         }
 
         // *******************
@@ -25,67 +47,77 @@
         var mapScale = 250000; // Ensure this variable is defined
 
         var projection = d3.geo.mercator()
-          .rotate([0, 0]) //lon,lat]
-          .center([mapCenterLon, mapCenterLat]) //[lon,lat]
-          .translate([mapWidth / 2, mapHeight / 4])
-          .precision(0.1)
-          .scale(mapScale);
+            .rotate([0, 0]) //lon,lat]
+            .center([mapCenterLon, mapCenterLat]) //[lon,lat]
+            .translate([mapWidth / 2, mapHeight / 4])
+            .precision(0.1)
+            .scale(mapScale);
 
         // Define path generator
         var path = d3.geo.path()
-          .projection(projection);
+            .projection(projection);
 
         // Create SVG element for Map panel:
         var svgMap = d3.select("body")
-          .append("svg")
-          .attr("id", "mapSVG")
-          .attr("width", mapWidth)
-          .attr("height", mapHeight)
-          .append("g");
+            .append("svg")
+            .attr("id", "mapSVG")
+            .attr("width", mapWidth)
+            .attr("height", mapHeight)
+            .style("background-color", "#f0f0f0") // Set background color
+            .append("g");
 
         // Optional background image
         var background_image = ""; // Set to your background image URL if needed
         if (background_image != "") {
-          svgMap.append("image")
-            .attr("xlink:href", background_image)
-            .attr("x", 0)
-            .attr("y", 0)
-            .attr("width", mapWidth)
-            .attr("height", mapHeight);
+            svgMap.append("image")
+                .attr("xlink:href", background_image)
+                .attr("x", 0)
+                .attr("y", 0)
+                .attr("width", mapWidth)
+                .attr("height", mapHeight);
         }
 
         svgMap.append("text")
-          .attr("x", 5)
-          .attr("y", 20)
-          .attr("class", "panelTitle")
-          .text("Geography SVG");
+            .attr("x", 5)
+            .attr("y", 20)
+            .attr("class", "panelTitle")
+            .text("Geography SVG");
 
         // Load and render GeoJSON data
         d3.json("boschdataset.geojson", function(error, geoData) {
-          if (error) throw error;
+            if (error) throw error;
 
-          svgMap.selectAll("circle")
-            .data(geoData.features)
-            .enter()
-            .append("circle")
-            .attr("cx", function(d) {
-              return projection(d.geometry.coordinates)[0];
-            })
-            .attr("cy", function(d) {
-              return projection(d.geometry.coordinates)[1];
-            })
-            .attr("r", 3.5) // Adjust radius as needed
-            //  how do i set the geodata fill colour to geo data propties colour
-            .style("fill", function(d) {
-              return d.properties.colour; // Set fill color based on the colour property
-            })
-            .style("opacity", 0.6)
-            .append("title")
-            .text(function(d) {
-              return "Participant: " + d.properties.Participant + "\nActivity: " + d.properties.Activity;
-            });
-            // add a .on and .on for off for hovering the circles on the map. Should integrate this later along the line 
+            var tooltip = d3.select("#tooltip");
+
+            svgMap.selectAll("circle")
+                .data(geoData.features)
+                .enter()
+                .append("circle")
+                .attr("cx", function(d) {
+                    return projection(d.geometry.coordinates)[0];
+                })
+                .attr("cy", function(d) {
+                    return projection(d.geometry.coordinates)[1];
+                })
+                .attr("r", 3.5) // Adjust radius as needed
+                .style("fill", function(d) {
+                    return d.properties.colour; // Set fill color based on the colour property
+                })
+                .style("opacity", 1)
+                .on("mouseover", function(event, d) {
+                    d3.select(this).classed("highlight", true);
+                    tooltip.transition()
+                        .duration(200)
+                        .style("opacity", .9);
+                    tooltip.html("<strong>Participant:</strong> " + d.properties.Participant + "<br/><strong>Activity:</strong> " + d.properties.Activity);
+                })
+                .on("mouseout", function(d) {
+                    d3.select(this).classed("highlight", false);
+                    tooltip.transition()
+                        .duration(500)
+                        .style("opacity", 0);
                 });
+        });
     </script>
 </body>
 </html>

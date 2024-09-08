@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Collated HTML</title>
+    <script type="text/javascript" src="https://d3js.org/d3.v3.min.js"></script>
+    <script type="text/javascript" src="geographyupdated.js"></script> <!-- Ensure this path is correct -->
+    <style>
+        .panelTitle {
+            font-size: 16px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <!-- Geography Panel -->
+    <svg id="mapSVG" width="500" height="538">
+        <g>
+            <text x="5" y="20" class="panelTitle">GEOGRAPHY</text>
+        </g>
+    </svg>
+
+    <script type="text/javascript">
+        // Call the renderMap function with a specific JSON file
+        renderMap("boschdataset.geojson");
+    </script>
+</body>
+</html>

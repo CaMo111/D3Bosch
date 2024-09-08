@@ -145,6 +145,13 @@
             .domain([earliestTime, latestTime])
             .range([0, 600]);
 
+          // Create and draw the time of day axis without ticks
+          var timeOfDayAxis = d3.svg.axis()
+            .scale(timeOfDayScale)
+            .orient("top")
+            .tickValues([]) // No tick values
+            .tickSize(0);
+
           // Create and draw the time of day axis
           var timeOfDayAxis = d3.svg.axis()
             .scale(timeOfDayScale)
@@ -157,27 +164,6 @@
             .attr("transform", "translate(" + xMargin + "," + (yD - 20) + ")")
             .call(timeOfDayAxis);
 
-          // Generate time points every 10 seconds
-          var timePoints = [];
-          var currentTime = new Date(earliestTime);
-          while (currentTime <= latestTime) {
-            timePoints.push(new Date(currentTime));
-            currentTime.setSeconds(currentTime.getSeconds() + 10);
-          }
-
-          // Draw small lines for each time point
-          DistTimePanel.selectAll("line.timePoint")
-            .data(timePoints)
-            .enter()
-            .append("line")
-            .attr("class", "point")
-            .attr("x1", function(d) { return timeOfDayScale(d) + xMargin; })
-            .attr("y1", yD - 20)
-            .attr("x2", function(d) { return timeOfDayScale(d) + xMargin; })
-            .attr("y2", yD)
-            .attr("stroke", "black")
-            .attr("stroke-width", 1);
-
           // Draw rectangles for segments with little distance traveled but lots of time passed
           for (var i = 0; i < data.length - 1; i++) {
             var startX = timeScale(parseMyDate(data[i].properties.Timestamp)) + xMargin;
@@ -187,13 +173,16 @@
             var timeDiff = parseMyDate(data[i + 1].properties.Timestamp) - parseMyDate(data[i].properties.Timestamp);
             var distanceDiff = cumulativeDistances[i + 1] - cumulativeDistances[i];
 
+            console.log("Time Diff:", timeDiff);
+            console.log("Distance Diff:", distanceDiff);
+            
             // Identify segments where little distance was traveled but lots of time passed
-            if (timeDiff > 0 && distanceDiff < 2) { // Adjust the threshold as needed
+            if (timeDiff > 0 && distanceDiff < 200) { // Adjust the threshold as needed
               DistTimePanel.append("rect")
                 .attr("x", startX)
                 .attr("y", yD - 20)
                 .attr("width", endX - startX)
-                .attr("height", endY - startY)
+                .attr("height", (endY - startY))
                 .attr("class", "highlightRect");
             }
           }
