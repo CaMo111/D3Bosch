@@ -4,6 +4,29 @@
     <meta charset="utf-8">
     <title>Time-Distance Panel</title>
     <script type="text/javascript" src="https://d3js.org/d3.v3.min.js"></script>
+    <style>
+        .axis line, .axis path {
+            shape-rendering: crispEdges;
+            stroke: black;
+            fill: none;
+        }
+        .axis text {
+            font-family: sans-serif;
+            font-size: 11px;
+        }
+        .panelTitle {
+            font-size: 16px;
+            font-weight: bold;
+        }
+        .dataLabel {
+            font-size: 10px;
+            fill: black;
+        }
+        .highlightRect {
+            fill: red;
+            opacity: 0.5;
+        }
+    </style>
 </head>
 <body>
     <script type="text/javascript">
@@ -15,11 +38,7 @@
         // *******************
         // prepareTime-distance panels:
         // *******************
-        var distScale, parseDate, timeScale;
-        var SVGscaleWidth = 650, SVGscaleHeight = 170;
-        var xMargin = 10, yT = 125, yD = 70;
-        var scaleLength = 600;
-        var rectHeight = 6; //for rects in scales
+        var dateFormat = d3.time.format("%Y-%m-%d %H:%M:%S");
 
         // Parses string to Date object
         function parseMyDate(DateStr) {
@@ -29,103 +48,156 @@
         d3.json("boschdataset_onlyparticipant1.geojson", function(error, geoData) {
           if (error) throw error;
 
-          // Find the earliest and latest times of day
+          // Find the earliest and latest times
           var earliestTime = d3.min(geoData.features, function(d) {
             var timeStr = d.properties.Timestamp; // Extract the time part
-            return timeStr;
+            return parseMyDate(timeStr);
           });
 
           var latestTime = d3.max(geoData.features, function(d) {
             var timeStr = d.properties.Timestamp; // Extract the time part
-            return timeStr; 
-          })
+            return parseMyDate(timeStr);
+          });
 
           var smallestDist = d3.min(geoData.features, function(d) {
             return d.geometry.distance; // Extract the distance part
           });
 
-          var largestDist = d3.max(geoData.features, function(d) {
-            return d.geometry.distance; // Extract the distance part
-          });
-
-          // create sum of all distances var 
-          var sumDist = d3.sum(geoData.features, function(d) {
+          var largestDist = d3.sum(geoData.features, function(d) {
             return d.geometry.distance;
           });
 
-          console.log(earliestTime);
-          console.log(latestTime);
-          console.log(smallestDist);
-          largestDist = sumDist; // set largest distance to sum of all distances
-          var distUnLabelledTicksValue = 200; // number of ticks for the detailed axis without labels
-          var distSlicesLabelledTicksValue = 1;
-          var distSlicesUnLabelledTicksValue = 5;
-          var timeLabelledTicksUnit = d3.time.months;
-          var timeLabelledTicksValue = 1;
-          var timeUnLabelledTicksUnit = d3.time.days;
-          var timeUnLabelledTicksValue = 20;
-          var distLabelledTicksValue = 20;
-          // circle sizes used in Map:
-          var stopSize = 4;
-          var noStopSize = 1.5;
-          // nameLabel + Attr: title + attribute to use for instance "name" in pop-ups:
-          var nameLabel = "";
-          var nameAttr = "name";
-          // background image: set to "" to not have any
-          var background_image = "";
+          var data = geoData.features;
 
-          // Vars domain for the scales
-            timeScale = d3.time.scale()
+          console.log("Earliest Time:", earliestTime);
+          console.log("Latest Time:", latestTime);
+          console.log("Smallest Distance:", smallestDist);
+          console.log("Largest Distance:", largestDist);
+
+          // Create time scale
+          var timeScale = d3.time.scale()
             .domain([earliestTime, latestTime])
-            .range([0, scaleLength]);
+            .range([0, 600]);
 
-            distScale = d3.scale.linear()
+          // Create distance scale
+          var distScale = d3.scale.linear()
             .domain([smallestDist, largestDist])
-            .range([0, scaleLength]);
+            .range([0, 600]);
 
-            // Create SVG element for Geo to Time panel:
-            var svgGeo2Time = d3.select("body")
+          // Create SVG element for Time to Geography panel:
+          var DistTimePanel = d3.select("body")
             .append("svg")
-            .attr("id", "geo2TimeSVG")
-            .attr("width", SVGscaleWidth)
-            .attr("height", SVGscaleHeight)
+            .attr("id", "DistTimePanel")
+            .attr("width", 650)
+            .attr("height", 250)
             .append("g");
 
-            // Add title to the Geo to Time panel
-            svgGeo2Time.append("text")
+          DistTimePanel.append("text")
             .attr("x", 5)
             .attr("y", 20)
             .attr("class", "panelTitle")
-            .text("FROM GEOGRAPHY TO TIME");
+            .text("FROM TIME TO GEOGRAPHY");
 
-            // Create detailed axis without labels
-            var distAxis2 = d3.svg.axis()
-            .scale(distScale)
-            .orient("top")
-            .ticks(distUnLabelledTicksValue)
-            .tickSize(6, 0);
+          // Prepare scales and axes
+          var xMargin = 20;
+          var yD = 140;
+          var cumulativeDistances = [0]; // Initialize with 0 for the starting point
 
-            // Draw detailed axis without labels
-            svgGeo2Time.append("g")
-            .attr("class", "axisNoLabels")
-            .attr("transform", "translate(" + xMargin + "," + yD +")" )
-            .call(distAxis2);
+          // Calculate cumulative distances
+          for (var i = 1; i < data.length; i++) {
+            var distance = data[i].geometry.distance;
+            cumulativeDistances.push(cumulativeDistances[i - 1] + distance);
+          }
 
-            // Create generalized axis with labels
-            var distAxis = d3.svg.axis()
-            .scale(distScale)
-            .orient("top")
-            .ticks(distLabelledTicksValue)
-            .tickSize(10, 0);
+          console.log("Cumulative Distances:", cumulativeDistances);
 
-            // Draw generalized axis with labels
-            svgGeo2Time.append("g")
+          // Create a linear scale for the cumulative distance
+          var cumulativeDistScale = d3.scale.linear()
+            .domain([0, d3.max(cumulativeDistances)])
+            .range([0, 600]);
+
+          // Create and draw the axis
+          var cumulativeDistAxis = d3.svg.axis()
+            .scale(cumulativeDistScale)
+            .orient("bottom")
+            .ticks(10);
+
+          DistTimePanel.append("g")
             .attr("class", "axis")
-            .attr("transform", "translate(" + xMargin + "," + yD +")" )
-            .call(distAxis);
+            .attr("transform", "translate(" + xMargin + "," + (yD + 50) + ")")
+            .call(cumulativeDistAxis);
 
+          // Draw small lines for each point relative to the cumulative distance
+          DistTimePanel.selectAll("line.point")
+            .data(cumulativeDistances)
+            .enter()
+            .append("line")
+            .attr("class", "point")
+            .attr("x1", function(d) { return cumulativeDistScale(d) + xMargin; })
+            .attr("y1", yD + 40)
+            .attr("x2", function(d) { return cumulativeDistScale(d) + xMargin; })
+            .attr("y2", yD + 50)
+            .attr("stroke", "black")
+            .attr("stroke-width", 1);
+
+          // Create a time scale for hours and minutes
+          var timeOfDayScale = d3.time.scale()
+            .domain([earliestTime, latestTime])
+            .range([0, 600]);
+
+          // Create and draw the time of day axis
+          var timeOfDayAxis = d3.svg.axis()
+            .scale(timeOfDayScale)
+            .orient("top")
+            .tickFormat(d3.time.format("%H:%M"))
+            .tickSize(0);
+
+          DistTimePanel.append("g")
+            .attr("class", "axis")
+            .attr("transform", "translate(" + xMargin + "," + (yD - 20) + ")")
+            .call(timeOfDayAxis);
+
+          // Generate time points every 10 seconds
+          var timePoints = [];
+          var currentTime = new Date(earliestTime);
+          while (currentTime <= latestTime) {
+            timePoints.push(new Date(currentTime));
+            currentTime.setSeconds(currentTime.getSeconds() + 10);
+          }
+
+          // Draw small lines for each time point
+          DistTimePanel.selectAll("line.timePoint")
+            .data(timePoints)
+            .enter()
+            .append("line")
+            .attr("class", "point")
+            .attr("x1", function(d) { return timeOfDayScale(d) + xMargin; })
+            .attr("y1", yD - 20)
+            .attr("x2", function(d) { return timeOfDayScale(d) + xMargin; })
+            .attr("y2", yD)
+            .attr("stroke", "black")
+            .attr("stroke-width", 1);
+
+          // Draw rectangles for segments with little distance traveled but lots of time passed
+          for (var i = 0; i < data.length - 1; i++) {
+            var startX = timeScale(parseMyDate(data[i].properties.Timestamp)) + xMargin;
+            var endX = timeScale(parseMyDate(data[i + 1].properties.Timestamp)) + xMargin;
+            var startY = yD + 50;
+            var endY = yD + 50 + (cumulativeDistScale(cumulativeDistances[i + 1]) - cumulativeDistScale(cumulativeDistances[i]));
+            var timeDiff = parseMyDate(data[i + 1].properties.Timestamp) - parseMyDate(data[i].properties.Timestamp);
+            var distanceDiff = cumulativeDistances[i + 1] - cumulativeDistances[i];
+
+            // Identify segments where little distance was traveled but lots of time passed
+            if (timeDiff > 0 && distanceDiff < 2) { // Adjust the threshold as needed
+              DistTimePanel.append("rect")
+                .attr("x", startX)
+                .attr("y", yD - 20)
+                .attr("width", endX - startX)
+                .attr("height", endY - startY)
+                .attr("class", "highlightRect");
+            }
+          }
         });
-
     </script>
 </body>
 </html>
