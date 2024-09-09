@@ -2,9 +2,10 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>Geography SVG</title>
+    <title>Geography and Distance-Time SVG</title>
     <script type="text/javascript" src="https://d3js.org/d3.v3.min.js"></script>
     <script type="text/javascript" src="geography.js"></script>
+    <script type="text/javascript" src="distancetimesvg.js"></script>
     <style>
         .tooltip {
             position: absolute;
@@ -29,13 +30,35 @@
             font-size: 16px;
             font-weight: bold;
         }
+        .container {
+            display: flex;
+            flex-direction: column; /* Change to column to stack panels vertically */
+        }
+        .svg-panel {
+            margin: 10px;
+        }
+        .dataLabel {
+            font-size: 10px;
+            fill: black;
+        }
+        .highlightRect {
+            fill: red;
+            opacity: 0.5;
+        }
     </style>
 </head>
 <body>
     <div id="tooltip" class="tooltip"></div>
+    <div class="container">
+        <div class="svg-panel" id="distancetime-panel"></div>
+        <div class="svg-panel" id="geography-panel"></div>
+    </div>
     <script type="text/javascript">
         // Call the renderMap function with a specific JSON file
-        renderMap("../srcfromother/boschdataset.geojson");
+        renderMap("boschdataset_filtered.geojson");
+
+        // Call the renderDistanceTimePanel function with a specific JSON file
+        renderDistanceTimePanel("boschdataset_filtered.geojson"); // morning 6.30 to 8 for p1 
     </script>
 </body>
 </html>

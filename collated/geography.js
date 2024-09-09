@@ -87,7 +87,23 @@ function renderMap(geoJsonFilePath) {
                 tooltip.transition()
                     .duration(200)
                     .style("opacity", .9);
-                tooltip.html("<strong>Participant:</strong> " + d.properties.Participant + "<br/><strong>Activity:</strong> " + d.properties.Activity);
+                
+                // Log the entire data point to inspect it
+                console.log("Data point:", d);
+
+                // Check if properties exist
+                if (d.properties) {
+                    console.log("properties:", d.properties);
+                
+                    // Check if Participant and Activity properties exist
+                    var participant = d.properties.Participant !== undefined ? d.properties.Participant : "Unknown";
+                    var activity = d.properties.Activity ? d.properties.Activity.replace(/\"/g, '') : "Unknown";
+                    
+                    tooltip.html("<strong>Participant:</strong> " + participant + "<br/><strong>Activity:</strong> " + activity);
+                } else {
+                    console.error("No properties found for data point:", d);
+                    tooltip.html("<strong>Participant:</strong> Unknown<br/><strong>Activity:</strong> Unknown");
+                }
             })
             .on("mouseout", function(d) {
                 d3.select(this).classed("highlight", false);
