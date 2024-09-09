@@ -177,7 +177,7 @@
             console.log("Distance Diff:", distanceDiff);
             
             // Identify segments where little distance was traveled but lots of time passed
-            if (timeDiff > 0 && distanceDiff < 200) { // Adjust the threshold as needed
+            if (timeDiff > 0 && distanceDiff < 400) { // Adjust the threshold as needed
               DistTimePanel.append("rect")
                 .attr("x", startX)
                 .attr("y", yD - 20)

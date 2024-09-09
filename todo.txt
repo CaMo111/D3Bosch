@@ -29,3 +29,12 @@ once achieved having multiple variables
 
 
 each participant is over like a week 
+
+
+
+TODO
+
+finish off individual such that the time is better suited between distance
+abstract the JS from html for each individual participant and the grography part
+such that...
+collate.html has these things together and can interact between them
