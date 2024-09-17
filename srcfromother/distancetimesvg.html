@@ -120,7 +120,8 @@
           var cumulativeDistAxis = d3.svg.axis()
             .scale(cumulativeDistScale)
             .orient("bottom")
-            .ticks(10);
+            .ticks(10)
+            .tickFormat(function(d) { return d/1000+ " km"; });
 
           DistTimePanel.append("g")
             .attr("class", "axis")
@@ -173,9 +174,7 @@
             var timeDiff = parseMyDate(data[i + 1].properties.Timestamp) - parseMyDate(data[i].properties.Timestamp);
             var distanceDiff = cumulativeDistances[i + 1] - cumulativeDistances[i];
 
-            console.log("Time Diff:", timeDiff);
-            console.log("Distance Diff:", distanceDiff);
-            
+
             // Identify segments where little distance was traveled but lots of time passed
             if (timeDiff > 0 && distanceDiff < 400) { // Adjust the threshold as needed
               DistTimePanel.append("rect")
@@ -186,7 +185,7 @@
                 .attr("class", "highlightRect");
             }
           }
-        });
+        }); 
     </script>
 </body>
 </html>

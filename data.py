@@ -1,7 +1,6 @@
 import json
 import math
 from datetime import datetime
-import os
 
 def haversine(lon1, lat1, lon2, lat2):
     # Convert latitude and longitude from degrees to radians
@@ -40,7 +39,6 @@ def parse_line(line, prev_coordinates, accumulated_distance, participant_colors)
         if prev_coordinates:
             distance = haversine(prev_coordinates[0], prev_coordinates[1], current_coordinates[0], current_coordinates[1])
         accumulated_distance += distance
-        distance = distance
         
         feature = {
             "type": "Feature",
@@ -66,12 +64,12 @@ def parse_line(line, prev_coordinates, accumulated_distance, participant_colors)
                 "Event_Free_xs": fields[22] if fields[22] != 'NA' else None,
                 "Mode_keepmoving": fields[23] if len(fields) > 23 else None,
                 "ModeButton_xs": fields[24] if len(fields) > 24 and fields[24] != 'NA' else None,
-                "colour": colour
+                "colour": colour,
+                "accumulated_distance": accumulated_distance
             },
             "geometry": {
                 "type": "Point",
-                "coordinates": current_coordinates,
-                "distance": distance  #switched to just distance
+                "coordinates": current_coordinates
             }
         }
         return feature, current_coordinates, accumulated_distance
@@ -95,9 +93,7 @@ def get_day_of_week(timestamp):
 
 def write_geojson_files(features_by_day_and_time):
     data_folder = "data"
-    if not os.path.exists(data_folder):
-        os.makedirs(data_folder)
-    
+
     for day in features_by_day_and_time:
         for time_range in features_by_day_and_time[day]:
             filename = f"{data_folder}/{day}_{time_range}.geojson"
@@ -128,8 +124,6 @@ features_by_day_and_time = {
 
 participant_colors = {}
 prev_participant = None
-prev_day = None
-prev_time_range = None
 prev_coordinates = None
 accumulated_distance = 0
 
@@ -153,14 +147,12 @@ for line in lines:
     day_of_week = get_day_of_week(timestamp)
     time_range = get_time_range(timestamp)
     
-    # Check if the participant, day, or time range has changed
-    if participant != prev_participant or day_of_week != prev_day or time_range != prev_time_range:
-        # Reset accumulated distance and previous coordinates for the new participant, day, or time range
+    # Check if the participant has changed
+    if participant != prev_participant:
+        # Reset accumulated distance and previous coordinates for the new participant
         prev_coordinates = None
         accumulated_distance = 0
         prev_participant = participant
-        prev_day = day_of_week
-        prev_time_range = time_range
     
     feature, prev_coordinates, accumulated_distance = parse_line(
         line, prev_coordinates, accumulated_distance, participant_colors)

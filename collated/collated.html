@@ -3,10 +3,15 @@
 <head>
     <meta charset="utf-8">
     <title>Geography and Distance-Time SVG</title>
-    <script type="text/javascript" src="https://d3js.org/d3.v3.min.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <script src="https://d3js.org/d3.v3.min.js"></script>
     <script type="text/javascript" src="geography.js"></script>
     <script type="text/javascript" src="distancetimesvg.js"></script>
     <style>
+        body {
+            background-color: white;
+            color: black;
+        }
         .tooltip {
             position: absolute;
             text-align: left;
@@ -32,7 +37,15 @@
         }
         .container {
             display: flex;
-            flex-direction: column; /* Change to column to stack panels vertically */
+            flex-direction: row; /* Arrange items horizontally */
+        }
+        .map-container {
+            flex: 1; /* Take up available space */
+        }
+        .svg-container {
+            flex: 1; /* Take up available space */
+            display: flex;
+            flex-direction: column; /* Stack SVG panels vertically */
         }
         .svg-panel {
             margin: 10px;
@@ -45,20 +58,78 @@
             fill: red;
             opacity: 0.5;
         }
+        .controls {
+            margin: 10px;
+        }
+        .dark-mode {
+            background-color: #121212;
+            color: white;
+        }
+        .dark-mode .tooltip {
+            background: #333;
+            border: 1px solid #ccc;
+        }
+        .dark-mode .highlight {
+            stroke: white;
+        }
+        .dark-mode .dataLabel {
+            fill: white;
+        }
+        .dark-mode .highlightRect {
+            fill: #ff4444;
+        }
     </style>
 </head>
 <body>
     <div id="tooltip" class="tooltip"></div>
+    <div class="controls">
+        <label for="day-select">Day of the Week:</label>
+        <select id="day-select">
+            <option value="monday">Monday</option>
+            <option value="tuesday">Tuesday</option>
+            <option value="wednesday">Wednesday</option>
+            <option value="thursday">Thursday</option>
+            <option value="friday">Friday</option>
+            <option value="saturday">Saturday</option>
+            <option value="sunday">Sunday</option>
+        </select>
+        <label for="time-select">Time of Day:</label>
+        <select id="time-select">
+            <option value="morning">Morning</option>
+            <option value="midday">Midday</option>
+            <option value="afternoon">Afternoon</option>
+            <option value="night">Night</option>
+        </select>
+        <button id="load-data">Load Data</button>
+        <button id="toggle-dark-mode">Toggle Dark Mode</button>
+    </div>
     <div class="container">
-        <div class="svg-panel" id="distancetime-panel"></div>
-        <div class="svg-panel" id="geography-panel"></div>
+        <div id="map" class="map-container"></div>
+        <div id="distancetime-panel" class="svg-container"></div>
     </div>
     <script type="text/javascript">
-        // Call the renderMap function with a specific JSON file
-        renderMap("boschdataset_filtered.geojson");
+        document.getElementById('load-data').addEventListener('click', function() {
+            var day = document.getElementById('day-select').value;
+            var time = document.getElementById('time-select').value;
+            var filename = `../data/${day}_${time}.geojson`;
 
-        // Call the renderDistanceTimePanel function with a specific JSON file
-        renderDistanceTimePanel("boschdataset_filtered.geojson"); // morning 6.30 to 8 for p1 
+            // Call the renderMap function with the selected JSON file
+            renderMap(filename);
+
+            // Call the renderDistanceTimePanel function with the selected JSON file
+            renderDistanceTimePanel(filename);
+        });
+
+        document.getElementById('toggle-dark-mode').addEventListener('click', function() {
+            document.body.classList.toggle('dark-mode');
+        });
+
+        // Initial load with default values
+        var initialDay = document.getElementById('day-select').value;
+        var initialTime = document.getElementById('time-select').value;
+        var initialFilename = `data/${initialDay}_${initialTime}.geojson`;
+        renderMap(initialFilename);
+        renderDistanceTimePanel(initialFilename);
     </script>
 </body>
 </html>

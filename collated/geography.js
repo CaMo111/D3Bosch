@@ -6,9 +6,6 @@ function renderMap(geoJsonFilePath) {
         throw new Error('D3.js is not loaded. Please ensure you have included the D3.js library.');
     }
 
-    // *******************
-    // prepare map panel:
-    // *******************
     //Width and height
     var mapWidth = 500;
     var mapHeight = 1550;
@@ -29,17 +26,25 @@ function renderMap(geoJsonFilePath) {
     var path = d3.geo.path()
         .projection(projection);
 
-    // Create SVG element for Map panel:
-    var svgMap = d3.select("body")
-        .append("svg")
-        .attr("id", "mapSVG")
-        .attr("width", mapWidth)
-        .attr("height", mapHeight)
-        .style("background-color", "#f0f0f0") // Set background color
-        .append("g");
+    // Select the existing SVG element or create a new one if it doesn't exist
+    var svgMap = d3.select("#mapSVG");
+
+    if (svgMap.empty()) {
+        svgMap = d3.select("body")
+            .append("svg")
+            .attr("id", "mapSVG")
+            .attr("width", mapWidth)
+            .attr("height", mapHeight)
+            .style("background-color", document.body.classList.contains('dark-mode') ? "#000000" : "#f0f0f0") // Set background color based on mode
+            .append("g");
+    } else {
+        // Clear the existing SVG contents
+        svgMap.selectAll("*").remove();
+        svgMap.style("background-color", document.body.classList.contains('dark-mode') ? "##000000" : "#f0f0f0"); // Update background color based on mode
+    }
 
     // Optional background image
-    var background_image = ""; // Set to your background image URL if needed
+    var background_image = ''; // Set to your background image URL if needed
     if (background_image != "") {
         svgMap.append("image")
             .attr("xlink:href", background_image)
@@ -69,49 +74,12 @@ function renderMap(geoJsonFilePath) {
         var circles = svgMap.selectAll("circle")
             .data(geoData.features);
 
-        circles.enter()
-            .append("circle")
-            .attr("cx", function(d) {
-                return projection(d.geometry.coordinates)[0];
-            })
-            .attr("cy", function(d) {
-                return projection(d.geometry.coordinates)[1];
-            })
-            .attr("r", 3.5) // Adjust radius as needed
-            .style("fill", function(d) {
-                return d.properties.colour; // Set fill color based on the colour property
-            })
-            .style("opacity", 1)
-            .on("mouseover", function(event, d) {
-                d3.select(this).classed("highlight", true);
-                tooltip.transition()
-                    .duration(200)
-                    .style("opacity", .9);
-                
-                // Log the entire data point to inspect it
-                console.log("Data point:", d);
+        circles.enter().append("circle")
+            .attr("cx", function(d) { return projection(d.geometry.coordinates)[0]; })
+            .attr("cy", function(d) { return projection(d.geometry.coordinates)[1]; })
+            .attr("r", 2)
+            .style("fill", function(d) { return d.properties.colour; });
 
-                // Check if properties exist
-                if (d.properties) {
-                    console.log("properties:", d.properties);
-                
-                    // Check if Participant and Activity properties exist
-                    var participant = d.properties.Participant !== undefined ? d.properties.Participant : "Unknown";
-                    var activity = d.properties.Activity ? d.properties.Activity.replace(/\"/g, '') : "Unknown";
-                    
-                    tooltip.html("<strong>Participant:</strong> " + participant + "<br/><strong>Activity:</strong> " + activity);
-                } else {
-                    console.error("No properties found for data point:", d);
-                    tooltip.html("<strong>Participant:</strong> Unknown<br/><strong>Activity:</strong> Unknown");
-                }
-            })
-            .on("mouseout", function(d) {
-                d3.select(this).classed("highlight", false);
-                tooltip.transition()
-                    .duration(500)
-                    .style("opacity", 0);
-            });
-
-        console.log("Circles rendered:", circles.size());
+        circles.exit().remove();
     });
 }

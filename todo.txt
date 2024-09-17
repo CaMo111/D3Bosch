@@ -34,7 +34,26 @@ each participant is over like a week
 
 TODO
 
+distance attr on geojson
+
 finish off individual such that the time is better suited between distance
 abstract the JS from html for each individual participant and the grography part
 such that...
 collate.html has these things together and can interact between them
+
+associate route to transport type
+put average speed <--> average speed difference
+fix tooltips
+walking then bus then train --> connect to route
+created viz to  see insights --> not helpful; added functionality to improve dataset; eg adding notes, delays expected 
+monday - sunday; click to seperate journeys `
+
+
+DO THE FUCKIN ETHICS BRAH
+
+ADD DISTANCE TO EVERY GEOJSON FILE  
+LOAD IN FROM MONDAY-SUNDAY 
+CLICK CERTAIN TIME FRAMES eg morning midday or night 
+have km and mins 
+write about alternative that student was working on 
+my project may benefit... 
