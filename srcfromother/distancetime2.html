@@ -26,6 +26,10 @@
             fill: red;
             opacity: 0.5;
         }
+        .statsText {
+            font-size: 19px;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
@@ -45,7 +49,7 @@
           return dateFormat.parse(DateStr);
         }
 
-        d3.json("../data/friday_afternoon.geojson", function(error, geoData) {
+        d3.json("../data/monday_midday.geojson", function(error, geoData) {
           if (error) throw error;
 
           // Group data by participant
@@ -56,7 +60,85 @@
     })
     .entries(geoData.features);
 
-  console.log(participantsData);
+     
+          // Collect all stress_xs values and distances
+          var allStressValues = [];
+          var totalDistance = 0;
+          participantsData.forEach(function(participant) {
+            participant.values.forEach(function(d) {
+              if (d.properties.stress_xs !== null) {
+                allStressValues.push(d.properties.stress_xs);
+              }
+              totalDistance += d.geometry.distance;
+            });
+          });
+
+          // Calculate mean and median stress_xs values
+          var meanStress = d3.mean(allStressValues);
+          var medianStress = d3.median(allStressValues);
+          var maxStress = d3.max(allStressValues);
+          var minStress = d3.min(allStressValues);
+
+
+          // Identify outliers (values more than 1.5 IQR above the third quartile or below the first quartile)
+          var q1 = d3.quantile(allStressValues.sort(d3.ascending), 0.25);
+          var q3 = d3.quantile(allStressValues.sort(d3.ascending), 0.75);
+          var iqr = q3 - q1;
+          var lowerBound = q1 - 1.5 * iqr;
+          var upperBound = q3 + 1.5 * iqr;
+          var outliers = allStressValues.filter(function(d) {
+            return d < lowerBound || d > upperBound;
+          });
+
+          // Create an SVG element at the top of the screen
+          var statsPanel = d3.select("body")
+            .append("svg")
+            .attr("id", "StatsPanel")
+            .attr("width", 650)
+            .attr("height", 60)
+            .append("g");
+
+          // Display mean and median stress_xs values
+          statsPanel.append("text")
+            .attr("class", "statsText")
+            .attr("x", 10)
+            .attr("y", 20)
+            .text("Mean Stress: " + meanStress.toFixed(2));
+
+          statsPanel.append("text")
+            .attr("class", "statsText")
+            .attr("x", 200)
+            .attr("y", 20)
+            .text("Median Stress: " + medianStress.toFixed(2));
+
+          // Display total distance traveled
+          statsPanel.append("text")
+            .attr("class", "statsText")
+            .attr("x", 10)
+            .attr("y", 40)
+            .text("Total Distance: " + (totalDistance/1000).toFixed(1) + " kilometres");
+
+          
+          // Display number of outliers
+          statsPanel.append("text")
+            .attr("class", "statsText")
+            .attr("x", 400)
+            .attr("y", 20)
+            .text("Outliers: " + outliers.length);
+
+             // Display max and min stress_xs values
+          statsPanel.append("text")
+            .attr("class", "statsText")
+            .attr("x", 10)
+            .attr("y", 60)
+            .text("Max Stress: " + maxStress.toFixed(2));
+
+          statsPanel.append("text")
+            .attr("class", "statsText")
+            .attr("x", 200)
+            .attr("y", 60)
+            .text("Min Stress: " + minStress.toFixed(2));
+
   // Define a color scale for stress_xs
   var colorScale = d3.scale.linear()
             .domain([0, 10]) // Stress values range from 0 to 10
@@ -64,9 +146,9 @@
 
 
             participantsData.forEach(function(participant) {
-            console.log(participant.key);
             var participantID = participant.key;
             var participantFeatures = participant.values;
+            console.log("Participant:", participantID);
 
             // Find the earliest and latest times
             var earliestTime = d3.min(participantFeatures, function(d) {
@@ -92,14 +174,8 @@
             return; // Skip this participant
     }
 
-            
-
             var data = participantFeatures;
 
-            console.log("Earliest Time:", earliestTime);
-            console.log("Latest Time:", latestTime);
-            console.log("Smallest Distance:", smallestDist);
-            console.log("Largest Distance:", largestDist);
 
             // Create time scale
             var timeScale = d3.time.scale()
@@ -136,7 +212,6 @@
                 cumulativeDistances.push(cumulativeDistances[i - 1] + distance);
             }
 
-            console.log("Cumulative Distances:", cumulativeDistances);
 
             // Create a linear scale for the cumulative distance
             var cumulativeDistScale = d3.scale.linear()
@@ -166,10 +241,10 @@
                 }
                 return {
                     distance: cumulativeDistances[i],
-                    stress: mostRecentStress
+                    stress: mostRecentStress,
+                    mode: d.properties.ModeButton_xs // Add mode to the paired data
                 };
             });
-            console.log("Paired Data:", pairedData);
 
             var area = d3.svg.area()
     .x(function(d) { return distScale(d.distance) + xMargin; })
@@ -205,6 +280,75 @@ pairedData.forEach(function(d, i) {
         return colorScale(d.stress); // Use the most recent non-null stress_xs value
     })
     .attr("stroke-width", 2);
+
+
+                // TRESTING ICON IMPLEMENTATION
+            var previousMode = null;
+
+            // Define a minimum horizontal distance threshold (in pixels)
+var minHorizontalDistance = 30; // Adjust this value as needed
+var maxHorizontalAdjustment = 15; // Maximum adjustment to maintain accuracy
+
+// Track the position of the last icon
+var lastIconX = null;
+
+// Append icons based on ModeButton_xs if it changes
+pairedData.forEach(function(d, i) {
+    var mode = d.mode.trim().replace(/['"]/g, '');  // Trim the mode value and remove parentheses
+    console.log("Current mode:", mode, "Length:", mode.length);
+    if (mode !== previousMode) {
+        var iconX = distScale(d.distance) + xMargin - 10; // Calculate the initial X position of the current icon
+        var iconY = yD + 20; // Fixed Y position
+
+        // Check if the current icon overlaps with the last icon
+        if (lastIconX !== null && Math.abs(iconX - lastIconX) < minHorizontalDistance) {
+            // If they overlap, adjust the X position to spread them out horizontally within a limited range
+            var adjustment = Math.min(minHorizontalDistance - Math.abs(iconX - lastIconX), maxHorizontalAdjustment);
+            iconX = lastIconX + adjustment;
+        }
+
+        // Ensure the icon does not go beyond the axis limits
+        iconX = Math.max(xMargin, Math.min(iconX, 600 + xMargin - 20)); // Adjust the limits as needed
+
+        // Append the icon
+        var icon = DistTimePanel.append("image")
+            .attr("class", "icon")
+            .attr("x", iconX)
+            .attr("y", iconY)
+            .attr("width", 20)
+            .attr("height", 20);
+
+        // Set the icon source based on the mode
+        if (mode === "ButtonWaitOrChange") {
+            icon.attr("xlink:href", "../data/waiting.png");
+        } else if (mode === "ButtonBus") {
+            console.log("Adding icon for Bus");
+            icon.attr("xlink:href", "../data/bus.png");
+        } else if (mode === "ButtonWalking") {
+            console.log("Adding icon for Walking");
+            icon.attr("xlink:href", "../data/walk.png");
+        } else if (mode === "ButtonTram") {
+            console.log("Adding icon for Tram");
+            icon.attr("xlink:href", "../data/tram.png");
+        } else if (mode === "ButtonTrain") {
+            console.log("Adding icon for Train");
+            icon.attr("xlink:href", "../data/train.png");
+        } else if (mode === "ButtonCar") {
+            console.log("Adding icon for Car");
+            icon.attr("xlink:href", "../data/car.jpg");
+        } else if (mode === "Cycling" || mode === "ButtonCycling") {
+            console.log("Adding icon for Cycling");
+            icon.attr("xlink:href", "../data/bike.png");
+        } else {
+            console.log("Unknown mode:", mode);
+        }
+
+        // Update the position of the last icon
+        lastIconX = iconX;
+
+        previousMode = mode; // Update the previous mode
+    }
+});
 
             // Create a time scale for hours and minutes
             var timeOfDayScale = d3.time.scale()
@@ -248,8 +392,19 @@ pairedData.forEach(function(d, i) {
                     .attr("class", "highlightRect");
                 }
             }
-            
-            }, this);});
+            }, this);
+        
+        // Count the number of SVG elements on the screen
+        var svgCount = d3.selectAll("svg").size();
+
+        // Display number of participants
+        statsPanel.append("text")
+            .attr("class", "statsText")
+            .attr("x", 350)
+            .attr("y", 40)
+            .text("Participants: " + svgCount);
+
+        });
 
     </script>
 </body>

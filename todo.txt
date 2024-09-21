@@ -49,11 +49,26 @@ created viz to  see insights --> not helpful; added functionality to improve dat
 monday - sunday; click to seperate journeys `
 
 
-DO THE FUCKIN ETHICS BRAH
 
-ADD DISTANCE TO EVERY GEOJSON FILE  
-LOAD IN FROM MONDAY-SUNDAY 
+
 CLICK CERTAIN TIME FRAMES eg morning midday or night 
 have km and mins 
 write about alternative that student was working on 
 my project may benefit... 
+
+colour the line points based onstress xs  
+add single tile 
+onto
+
+add basic mean median data legend to the top 
+
+1. change how days of the week data accumulates data to just calculate distance between two points ✔
+2. integrate multiple participants into a new file 'distance time 2', such that since it works for one, it will just seperate between participant, sort based on time
+and fill it in for multiple new svg elements 
+3. IMPROVE distance time per participant eg change metres for bottom axis, change time to look prettier, add some improvements to how distance time is shown;
+change line.point to be colored off heart rate, add method of transport icon above the bottom axis 
+
+4. once fully functional add it to the geography map, make left and right container balanced.
+
+5. work on new highlighted svg element, most recently selected 
+6. work on average for this data set 
