@@ -51,12 +51,7 @@ monday - sunday; click to seperate journeys `
 
 
 
-CLICK CERTAIN TIME FRAMES eg morning midday or night 
-have km and mins 
-write about alternative that student was working on 
-my project may benefit... 
-
-colour the line points based onstress xs  
+ 
 add single tile 
 onto
 
@@ -72,3 +67,21 @@ change line.point to be colored off heart rate, add method of transport icon abo
 
 5. work on new highlighted svg element, most recently selected 
 6. work on average for this data set 
+
+
+
+TODO 
+
+FOCUS PANEL 
+bolden stats panel  
+legend for colour, legend for transport <-- do this 
+
+on line point highlight, get rid of all icons and just append the icon as you hover along left to right
+
+fix stress appending
+
+
+
+get a legend for the colour range and for the icons themselves
+on line point highlight enlargen all circles with same transport for this participant, behind it sort of 
+fix overlapping icons 

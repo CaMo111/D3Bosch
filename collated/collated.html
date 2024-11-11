@@ -7,6 +7,7 @@
     <script src="https://d3js.org/d3.v3.min.js"></script>
     <script type="text/javascript" src="geography.js"></script>
     <script type="text/javascript" src="distancetimesvg.js"></script>
+    <script type="text/javascript" src="collated.js"></script>
     <style>
         body {
             background-color: white;
@@ -35,21 +36,6 @@
             font-size: 16px;
             font-weight: bold;
         }
-        .container {
-            display: flex;
-            flex-direction: row; /* Arrange items horizontally */
-        }
-        .map-container {
-            flex: 1; /* Take up available space */
-        }
-        .svg-container {
-            flex: 1; /* Take up available space */
-            display: flex;
-            flex-direction: column; /* Stack SVG panels vertically */
-        }
-        .svg-panel {
-            margin: 10px;
-        }
         .dataLabel {
             font-size: 10px;
             fill: black;
@@ -61,27 +47,28 @@
         .controls {
             margin: 10px;
         }
-        .dark-mode {
-            background-color: #121212;
-            color: white;
-        }
-        .dark-mode .tooltip {
-            background: #333;
+        .highlighted-point {
+            stroke: red;
+            stroke-width: 10px;
+        }.rhs-image-container {
+            position: absolute;
+            right: 0;
+            top: 0;
+            width: 500px;
+            height: 700px;
             border: 1px solid #ccc;
+            background-color: white;
         }
-        .dark-mode .highlight {
-            stroke: white;
-        }
-        .dark-mode .dataLabel {
-            fill: white;
-        }
-        .dark-mode .highlightRect {
-            fill: #ff4444;
+        .rhs-image-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
         }
     </style>
 </head>
 <body>
-    <div id="tooltip" class="tooltip"></div>
+
+    <div id="tooltip" style="position: absolute; visibility: hidden; background-color: white; border: 1px solid black; padding: 5px;"></div>
     <div class="controls">
         <label for="day-select">Day of the Week:</label>
         <select id="day-select">
@@ -101,23 +88,26 @@
             <option value="night">Night</option>
         </select>
         <button id="load-data">Load Data</button>
-        <button id="toggle-dark-mode">Toggle Dark Mode</button>
     </div>
     <div class="container">
         <div id="map" class="map-container"></div>
         <div id="distancetime-panel" class="svg-container"></div>
+        <div class="rhs-image-container">
+            <img src="../data/legend.png" alt="Legend Image"> <!-- Add this line for the static image -->
+        </div>
     </div>
     <script type="text/javascript">
-        document.getElementById('load-data').addEventListener('click', function() {
+         document.getElementById('load-data').addEventListener('click', function() {
             var day = document.getElementById('day-select').value;
             var time = document.getElementById('time-select').value;
             var filename = `../data/${day}_${time}.geojson`;
 
-            // Call the renderMap function with the selected JSON file
-            renderMap(filename);
+            // Clear existing content of distancetime-panel
+            var distTimePanel = document.getElementById('distancetime-panel');
+            distTimePanel.innerHTML = '';
 
-            // Call the renderDistanceTimePanel function with the selected JSON file
-            renderDistanceTimePanel(filename);
+            // Call the renderMap function with the selected JSON file
+            collate(filename);
         });
 
         document.getElementById('toggle-dark-mode').addEventListener('click', function() {
@@ -128,8 +118,7 @@
         var initialDay = document.getElementById('day-select').value;
         var initialTime = document.getElementById('time-select').value;
         var initialFilename = `data/${initialDay}_${initialTime}.geojson`;
-        renderMap(initialFilename);
-        renderDistanceTimePanel(initialFilename);
+    
     </script>
 </body>
 </html>
